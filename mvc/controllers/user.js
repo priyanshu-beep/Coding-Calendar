@@ -6,13 +6,18 @@ const { OAuth2Client } = require('google-auth-library');
 const Contest = mongoose.model("Contest");
 const User = mongoose.model("User");
 
+require("dotenv").config();
+const CLIENT_ID = process.env.CLIENT_ID;
+const clist_token = process.env.clist_token;
+const Client_Secret = process.env.Client_Secret;
+const refresh_token = process.env.refresh_token;
+
 
 
 const auth = function (req, res) {
-  const CLIENT_ID = '966641561326-7nivlb5sna5dpcloaot4d51oba9n46ej.apps.googleusercontent.com'
+
   const client = new OAuth2Client(CLIENT_ID);
   let token = req.body.token;
-  // console.log(token)
   let profile = req.body.profile;
   let user = new User();
   user.name = profile.Se;
@@ -38,8 +43,6 @@ const auth = function (req, res) {
   }
   verify()
     .then(() => {
-      //       let tmp = JSON.parse(token);
-      // console.log(tmp);
       res.cookie('session-token', token);
       res.send('success');
     })
@@ -53,22 +56,20 @@ const clist = async function () {
 
   return new Promise(function (resolve, reject) {
 
-    let clist_token = 'username=priyanshu_x&api_key=1e0a1d7b14cf84194ca2a240efc8e735b28b9422'
     let URL_BASE = 'https://clist.by/api/v2/'
 
     var d = new Date();
     d.setDate(d.getDate() - 2);
 
-    // console.log(d)
+
     var c = JSON.stringify(d)
     c = c.substring(1)
     c = c.slice(0, -1)
 
-    // console.log(c)
 
     let url = URL_BASE + 'contest/?limit=20&start__gte=' + c + '&' + clist_token
     let contestsAdded = [];
-    // console.log(url)
+
 
     axios.get(url)
       .then(r => {
@@ -115,13 +116,13 @@ const addCalendar = async function () {
 
       // Create a new instance of oAuth and set our Client ID & Client Secret.
       const oAuth2Client = new OAuth2(
-        '966641561326-7nivlb5sna5dpcloaot4d51oba9n46ej.apps.googleusercontent.com',
-        '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'
+        CLIENT_ID,
+        Client_Secret
       )
 
       // Call the setCredentials method on our oAuth2Client instance and set our refresh token.
       oAuth2Client.setCredentials({
-        refresh_token: '1//04iiZC-nUI3osCgYIARAAGAQSNwF-L9IrJ6GfxfDrVx6wDvoJCzo8Kkl52y63LTtjYsA7srILnQ3YiXY018vmW1Lr7saYyEy8Qww',
+        refresh_token: refresh_token,
       })
 
 
@@ -154,30 +155,37 @@ const addCalendar = async function () {
         })
       })
 
+      var timmer = 0;
       var newEventCreater = function (event) {
+        
 
         return new Promise(function (resolve, reject) {
-          calendar.events.insert(
-            { calendarId: 'primary', resource: event },
-            err => {
+          setTimeout(() => {
 
-              if (err) {
-                console.log('Error Creating Calender Event: Event already present')
-                resolve(event)
+            calendar.events.insert(
+              { calendarId: 'primary', resource: event },
+              err => {
+                // console.log(event)
+  
+                if (err) {
+                  console.log('Error Creating Calender Event: Event already present')
+                  resolve(event)
+                }
+                // Else log that the event was created.
+                else {
+                  console.log("-----------------shuru-------------------")
+                  console.log('Calendar event successfully created.');
+                  console.log(event.id)
+                  console.log(event.start.dateTime)
+                  console.log(event.start.dateTime)
+                  console.log("-----------------khtm-------------------")
+  
+                  resolve(event)
+                }
               }
-              // Else log that the event was created.
-              else {
-                console.log("-----------------shuru-------------------")
-                console.log('Calendar event successfully created.');
-                console.log(event.id)
-                console.log(event.start.dateTime)
-                console.log(event.start.dateTime)
-                console.log("-----------------khtm-------------------")
-
-                resolve(event)
-              }
-            }
-          )
+            )
+            
+          }, timmer += 300);
         });
 
       }
@@ -188,6 +196,7 @@ const addCalendar = async function () {
       Promise.all([retriveContestData, retriveUserData])
         .then(async function (values) {
 
+          var timer = 0;
 
           for (let contest of values[0]) {
             // console.log(contest)
@@ -207,11 +216,9 @@ const addCalendar = async function () {
               attendees: []
             };
 
-
-
-
-
+            
             for (let user of values[1]) {
+              
               event.attendees.push({ email: user.email })
               if (user.addedContests.find(
                 function (vals) {
@@ -231,20 +238,23 @@ const addCalendar = async function () {
 
             newEventCreater(event)
               .then(eventforUpdate => {
-                // var params = {
-                //   calendarId: 'primary',
-                //   eventId: eventforUpdate.id,
-                //   resource: eventforUpdate
-                // };
+                setTimeout(() => {
+                  var params = {
+                    calendarId: 'primary',
+                    eventId: eventforUpdate.id,
+                    resource: eventforUpdate
+                  };
 
 
-                // calendar.events.update(params, function (err) {
-                //   if (err) {
-                //     console.log('The API returned an error: ' + err);
-                //     return;
-                //   }
-                //   console.log('Event updated.');
-                // });
+                  calendar.events.update(params, function (err) {
+                    // console.log(eventforUpdate)
+                    if (err) {
+                      console.log('The API returned an error: ' + err);
+                      return;
+                    }
+                    console.log('Event updated.');
+                  });
+                }, timer += 900);
               })
               .catch(err => {
                 console.log(err)
@@ -265,17 +275,18 @@ const addCalendar = async function () {
     })
 }
 
-// Useless Stuffs
+// For debugging purpose
 const clearCalendar = function (req, res) {
 
+  // Create a new instance of oAuth and set our Client ID & Client Secret.
   const oAuth2Client = new OAuth2(
-    '966641561326-7nivlb5sna5dpcloaot4d51oba9n46ej.apps.googleusercontent.com',
-    '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'
+    CLIENT_ID,
+    Client_Secret
   )
 
   // Call the setCredentials method on our oAuth2Client instance and set our refresh token.
   oAuth2Client.setCredentials({
-    refresh_token: '1//04iiZC-nUI3osCgYIARAAGAQSNwF-L9IrJ6GfxfDrVx6wDvoJCzo8Kkl52y63LTtjYsA7srILnQ3YiXY018vmW1Lr7saYyEy8Qww',
+    refresh_token: refresh_token,
   })
 
 
@@ -369,11 +380,6 @@ const deleteAllContest = function (req, res) {
 
 
 module.exports = {
-  // register,
-  // clist,
   auth,
   addCalendar
-  // deleteAllUsers,
-  // deleteAllContest,
-  // clearCalendar
 }

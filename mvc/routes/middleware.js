@@ -1,7 +1,7 @@
-const {OAuth2Client} = require('google-auth-library');
-const CLIENT_ID = '966641561326-7nivlb5sna5dpcloaot4d51oba9n46ej.apps.googleusercontent.com';
+const { OAuth2Client } = require('google-auth-library');
+const CLIENT_ID = process.env.CLIENT_ID;;
 const client = new OAuth2Client(CLIENT_ID);
-const checkAuthenticated = function(req, res, next){
+const checkAuthenticated = function (req, res, next) {
 
     let token = req.cookies['session-token'];
     let user = {};
@@ -14,17 +14,16 @@ const checkAuthenticated = function(req, res, next){
         user.name = payload.name;
         user.email = payload.email;
         user.picture = payload.picture;
-      }
-      verify()
-      .then(()=>{
-          req.user = user;
-          next();
-      })
-      .catch(err=>{
-          
-        res.redirect('/users/login');
-        console.log(err);
-    })
+    }
+    verify()
+        .then(() => {
+            req.user = user;
+            next();
+        })
+        .catch(err => {
+            res.redirect('/users/login');
+            console.log(err);
+        })
 }
 
 module.exports = {

@@ -3,7 +3,7 @@ let dbURI = 'mongodb://localhost:27017/Coding_Calendar';
 
 
 if (process.env.NODE_ENV === 'production') {
-    dbURI = process.env.MONGODB_URI;
+  dbURI = process.env.MONGODB_URI;
 }
 
 
@@ -25,7 +25,7 @@ mongoose.connection.on('disconnected', () => {
 
 
 const gracefulShutdown = (msg, callback) => {
-  mongoose.connection.close( () => {
+  mongoose.connection.close(() => {
     console.log(`Mongoose disconnected through ${msg}`);
     callback();
   });

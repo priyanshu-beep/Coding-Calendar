@@ -1,25 +1,25 @@
 const mongoose = require('mongoose');
 
 const userSchema = new mongoose.Schema({
-    name:{
-        type:String,
-        required:true
+    name: {
+        type: String,
+        required: true
     },
-    email:{
-        type:String,
-        required:true,
-        unique:true
+    email: {
+        type: String,
+        required: true,
+        unique: true
     },
-    addedContests:[Number]
+    addedContests: [Number]
 });
 
 const contestSchema = new mongoose.Schema({
     host: String,
-    id:{
+    id: {
         type: Number,
         unique: true
     },
-    link:{
+    link: {
         type: String,
         unique: true
     },
@@ -28,5 +28,5 @@ const contestSchema = new mongoose.Schema({
     end: Date
 });
 
-mongoose.model("User",userSchema);
-mongoose.model("Contest",contestSchema);
+mongoose.model("User", userSchema);
+mongoose.model("Contest", contestSchema);
